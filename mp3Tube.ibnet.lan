@@ -1,0 +1,51 @@
+server {
+    listen 80;
+    server_name mp3tube.ibnet.lan;
+
+    # Error handling pages
+    error_page 401 403 404 /error-404.html;
+    location = /error-404.html { 
+        root /var/www/html;  # Make sure this path is correct
+    }
+
+    error_page 500 502 503 504 /error-500.html;
+    location = /error-500.html {
+        root /var/www/html;
+        internal;
+    }
+
+    # Access logs
+    access_log /var/log/nginx/mp3tube.access.log;
+
+    # Serve static files
+    location /static {
+        alias /var/www/gunicorn/mp3Tube/static;  # Adjust path as needed
+        autoindex on;  # Enable directory listing (optional)
+    }
+
+    # Serve static files
+    location /downloads {
+        alias /var/www/gunicorn/mp3Tube/downloads;  # Adjust path as needed
+        autoindex on;  # Enable directory listing (optional)
+    }
+
+
+    # Main location block for the app
+    location / {
+        proxy_pass http://unix:/var/www/gunicorn/mp3Tube/mp3Tube.sock;  # Adjust this to your socket path
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;  # Use $host instead of $http_host
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forward-Proto http;  # If you're using HTTPS, change to 'https'
+        proxy_set_header X-Nginx-Proxy true;
+        proxy_read_timeout 90;
+        client_max_body_size 0;  # Allow unlimited body size; adjust as necessary
+	# Disable caching
+        proxy_no_cache 1;
+        proxy_cache_bypass 1;
+    }
+}
+

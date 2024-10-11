@@ -1,0 +1,15 @@
+[Unit]
+Description=Gunicorn instance to serve mp3Tube
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/gunicorn/mp3Tube
+Environment="PATH=/var/www/gunicorn/mp3Tube/venv/bin"
+#ExecStart=/var/www/gunicorn/mp3Tube/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 app:app
+ExecStart=/var/www/gunicorn/mp3Tube/venv/bin/gunicorn --reload --workers 3 --bind unix:/var/www/gunicorn/mp3Tube/mp3Tube.sock -m 007 app:app
+
+[Install]
+WantedBy=multi-user.target
+
